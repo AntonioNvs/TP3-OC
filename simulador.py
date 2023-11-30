@@ -76,8 +76,8 @@ class CacheMemory:
     def print_hits_and_misses(self):
         with open("output.txt", "a") as file:
             file.write("\n")
-            file.write(f"hits: {self.hits}\n")
-            file.write(f"misses: {self.misses}\n")
+            file.write(f"#hits: {self.hits}\n")
+            file.write(f"#miss: {self.misses}\n")
 
 
 class DirectMappingCache(CacheMemory):
@@ -111,7 +111,7 @@ class SetAssociativeCache(CacheMemory):
     def __init__(self, cache_size, line_size, block_size):
         super().__init__(cache_size, line_size, block_size)
 
-        self.less_recently_used = []
+        self.less_recently_used = [[]] * self.num_lines
 
 
     def read(self, address):
@@ -125,7 +125,7 @@ class SetAssociativeCache(CacheMemory):
         for i, block in enumerate(self.cache[line]):
             if block is None:
                 self.cache[line][i] = address
-                self.less_recently_used.append(i)
+                self.less_recently_used[line].append(i)
                 self.misses += 1
                 return
 
@@ -133,13 +133,13 @@ class SetAssociativeCache(CacheMemory):
 
             if tag_cache == tag:
                 self.hits += 1
-                self.less_recently_used.remove(i)
-                self.less_recently_used.append(i)
+                self.less_recently_used[line].remove(i)
+                self.less_recently_used[line].append(i)
                 return
 
-        less_block = self.less_recently_used.pop(0)
+        less_block = self.less_recently_used[line].pop(0)
         self.cache[line][less_block] = address
-        self.less_recently_used.append(less_block)
+        self.less_recently_used[line].append(less_block)
         self.misses += 1
 
 
